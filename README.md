@@ -3,5 +3,5 @@ PHPhuck
 
 Brainfuck interpreter written in PHP
 
-Syntax: phphuck <source file>
-        phphuck -c <code>
+    Syntax: phphuck <source file>
+            phphuck -c <code>

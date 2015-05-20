@@ -5,11 +5,6 @@ namespace Brainfuck;
 class Interpreter
 {
     /**
-     * @var callable[]
-     */
-    private $opHandlers;
-
-    /**
      * @var int[]
      */
     private $data;

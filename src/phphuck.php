@@ -4,7 +4,13 @@ namespace Brainfuck;
 
 $begin = microtime(true);
 
-require __DIR__ . '/bootstrap.php';
+require __DIR__ . '/SealedObject.php';
+require __DIR__ . '/Cmds.php';
+require __DIR__ . '/Ops.php';
+require __DIR__ . '/SourceStream.php';
+require __DIR__ . '/FileSourceStream.php';
+require __DIR__ . '/Compiler.php';
+require __DIR__ . '/Interpreter.php';
 
 if (!isset($argv[1]) || $argv[1] === '--help') {
     echo <<<HELP

@@ -1,6 +1,6 @@
 <?php
 
-namespace Brainfuck;
+namespace PHPhuck;
 
 class Compiler
 {

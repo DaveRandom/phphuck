@@ -4,10 +4,10 @@ namespace Brainfuck;
 
 class Compiler
 {
-    const ELIMINATE_EMPTY_LOOPS    = 0b0001;
-    const OPTIMISE_SINGLE_OP_LOOPS = 0b0010;
-    const COMPRESS_REPEATED_OPS    = 0b0100;
-    const OPTIMISE_ALL = self::ELIMINATE_EMPTY_LOOPS | self::OPTIMISE_SINGLE_OP_LOOPS | self::COMPRESS_REPEATED_OPS;
+    const ELIMINATE_EMPTY_LOOPS     = 0b0001;
+    const SHORTCUT_SINGLE_CMD_LOOPS = 0b0010;
+    const COMPRESS_REPEATED_CMDS    = 0b0100;
+    const OPTIMISE_ALL = self::ELIMINATE_EMPTY_LOOPS | self::SHORTCUT_SINGLE_CMD_LOOPS | self::COMPRESS_REPEATED_CMDS;
 
     /**
      * @var string[]
@@ -72,7 +72,7 @@ class Compiler
         $currentCompressibleOp = null;
 
         while (!feof($src) && false !== $cmd = fgetc($src)) {
-            if ($flags & self::COMPRESS_REPEATED_OPS) {
+            if ($flags & self::COMPRESS_REPEATED_CMDS) {
                 if (isset(self::$nonLoopCmdOpMap[$cmd]) && $currentCompressibleOp === self::$nonLoopCmdOpMap[$cmd]) {
                     $currentCompressibleOpCount++;
                 } else {
@@ -123,7 +123,7 @@ class Compiler
                     $dstPtr -= 5;
                     fseek($dst, $dstPtr);
                     ftruncate($dst, $dstPtr);
-                } else if ($loopStartPtr === $dstPtr - 1 && $flags & self::OPTIMISE_SINGLE_OP_LOOPS) {
+                } else if ($loopStartPtr === $dstPtr - 1 && $flags & self::SHORTCUT_SINGLE_CMD_LOOPS) {
                     // loop contains a single instruction, optimise the loop to a single op
                     fseek($dst, $loopStartPtr);
                     $loopOp = fgetc($dst);

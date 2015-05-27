@@ -7,7 +7,13 @@ class Compiler
     const ELIMINATE_EMPTY_LOOPS     = 0b0001;
     const SHORTCUT_SINGLE_CMD_LOOPS = 0b0010;
     const COMPRESS_REPEATED_CMDS    = 0b0100;
-    const OPTIMISE_ALL = self::ELIMINATE_EMPTY_LOOPS | self::SHORTCUT_SINGLE_CMD_LOOPS | self::COMPRESS_REPEATED_CMDS;
+    const COMPILER_DEFAULT =
+        self::ELIMINATE_EMPTY_LOOPS | self::SHORTCUT_SINGLE_CMD_LOOPS | self::COMPRESS_REPEATED_CMDS;
+
+    /**
+     * @var int[]
+     */
+    private static $version = [1, 0, 0, ReleaseStages::DEV];
 
     /**
      * @var string[]
@@ -30,6 +36,14 @@ class Compiler
         Ops::PTINC => Ops::PTMLI,
         Ops::PTDEC => Ops::PTMLD,
     ];
+
+    /**
+     * @return int[]
+     */
+    public static function getVersion()
+    {
+        return self::$version;
+    }
 
     /**
      * @param string $op
@@ -64,7 +78,7 @@ class Compiler
      * @param resource $dst
      * @param int $flags
      */
-    public function compile($src, $dst, $flags = self::OPTIMISE_ALL)
+    public function compile($src, $dst, $flags = self::COMPILER_DEFAULT)
     {
         $dstPtr = $currentCompressibleOpCount = 0;
         $line = $char = 1;

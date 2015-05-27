@@ -10,6 +10,11 @@ class Interpreter
     private $data;
 
     /**
+     * @var int[]
+     */
+    private static $version = [1, 0, 0, ReleaseStages::DEV];
+
+    /**
      * @var int
      */
     private $ptr = 0;
@@ -43,6 +48,14 @@ class Interpreter
         }
 
         $this->data = new \SplFixedArray((int)$dataArraySize);
+    }
+
+    /**
+     * @return int[]
+     */
+    public static function getVersion()
+    {
+        return self::$version;
     }
 
     /**

@@ -12,7 +12,7 @@ class Interpreter
     /**
      * @var int[]
      */
-    private static $version = [1, 0, 0, ReleaseStages::DEV];
+    private static $version = [1, 0, 0, ReleaseStages::RC + 1];
 
     /**
      * @var int
@@ -60,11 +60,30 @@ class Interpreter
 
     /**
      * @param SourceStream $src
+     * @throws \RuntimeException
+     */
+    private function validateCompilerVersion(SourceStream $src)
+    {
+        list($maj, $min) = $src->compilerVersion;
+
+        if ($maj > self::$version[0] || ($maj === self::$version[0] && $min > self::$version[1])) {
+            throw new \RuntimeException(sprintf(
+                'Interpreter %s cannot execute code compiled by compiler %s',
+                create_version_string(self::$version),
+                create_version_string($src->compilerVersion)
+            ));
+        }
+    }
+
+    /**
+     * @param SourceStream $src
      * @return int
      * @throws \RuntimeException
      */
     public function run(SourceStream $src)
     {
+        $this->validateCompilerVersion($src);
+
         $opCount = 0;
 
         while (list($op, $arg) = $src->next()) {

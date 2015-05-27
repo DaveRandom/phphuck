@@ -2,6 +2,10 @@
 
 namespace PHPhuck;
 
+/**
+ * @property-read resource $stream
+ * @property-read int[] $compilerVersion
+ */
 interface SourceStream
 {
     /**

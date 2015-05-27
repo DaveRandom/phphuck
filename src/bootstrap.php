@@ -1,17 +1,21 @@
 <?php
 
+require __DIR__ . '/functions.php';
+
 spl_autoload_register(function($className) {
     static $classMap = [
-        'brainfuck\\cmds'             => __DIR__ . '/Cmds.php',
-        'brainfuck\\compiler'         => __DIR__ . '/Compiler.php',
-        'brainfuck\\filesourcestream' => __DIR__ . '/FileSourceStream.php',
-        'brainfuck\\interpreter'      => __DIR__ . '/Interpreter.php',
-        'brainfuck\\ops'              => __DIR__ . '/Ops.php',
-        'brainfuck\\releasestages'    => __DIR__ . '/ReleaseStages.php',
-        'brainfuck\\sourcestream'     => __DIR__ . '/SourceStream.php',
+        'phphuck\\cbfhandler'              => __DIR__ . DIRECTORY_SEPARATOR . '/CBFHandler.php',
+        'phphuck\\cmds'                    => __DIR__ . DIRECTORY_SEPARATOR . '/Cmds.php',
+        'phphuck\\compiler'                => __DIR__ . DIRECTORY_SEPARATOR . '/Compiler.php',
+        'phphuck\\filesourcestream'        => __DIR__ . DIRECTORY_SEPARATOR . '/FileSourceStream.php',
+        'phphuck\\interpreter'             => __DIR__ . DIRECTORY_SEPARATOR . '/Interpreter.php',
+        'phphuck\\invalidcbffileexception' => __DIR__ . DIRECTORY_SEPARATOR . '/InvalidCBFFileException.php',
+        'phphuck\\ops'                     => __DIR__ . DIRECTORY_SEPARATOR . '/Ops.php',
+        'phphuck\\releasestages'           => __DIR__ . DIRECTORY_SEPARATOR .  'ReleaseStages.php',
+        'phphuck\\sourcestream'            => __DIR__ . DIRECTORY_SEPARATOR . '/SourceStream.php',
     ];
 
-    $className = ltrim($className, '\\');
+    $className = strtolower(ltrim($className, '\\'));
     if (isset($classMap[$className])) {
         /** @noinspection PhpIncludeInspection */
         require $classMap[$className];

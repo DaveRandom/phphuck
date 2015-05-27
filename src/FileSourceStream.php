@@ -3,21 +3,39 @@
 namespace PHPhuck;
 
 /**
- * @property-read resource $srcStream
+ * @property-read resource $stream
+ * @property-read int[] $compilerVersion
  */
 class FileSourceStream implements SourceStream
 {
     /**
      * @var resource
      */
-    private $srcStream;
+    private $stream;
 
     /**
-     * @param resource $srcStream
+     * @var int[]
      */
-    public function __construct($srcStream)
+    private $compilerVersion;
+
+    /**
+     * @param resource $stream
+     * @param int[] $version
+     */
+    public function __construct($stream, array $version)
     {
-        $this->srcStream = $srcStream;
+        if (count($version) !== 4) {
+            throw new \LogicException('Invalid version: must contain exactly 4 bytes as integers');
+        }
+
+        foreach ($version as $element) {
+            if (!is_int($element) || $element < 0 || $element > 255) {
+                throw new \LogicException('Invalid version: must contain exactly 4 bytes as integers');
+            }
+        }
+
+        $this->stream = $stream;
+        $this->compilerVersion = $version;
     }
 
     /**
@@ -50,12 +68,12 @@ class FileSourceStream implements SourceStream
     public function next()
     {
         static $argOps = [
-            Ops::JUMPZ => true, Ops::JMPNZ => true,
-            Ops::DTMLI => true, Ops::DTMLD => true,
-            Ops::PTMLI => true, Ops::PTMLD => true,
+            Ops::JUMPZ => 1, Ops::JMPNZ => 1,
+            Ops::DTMLI => 1, Ops::DTMLD => 1,
+            Ops::PTMLI => 1, Ops::PTMLD => 1,
         ];
 
-        return [$op = fgetc($this->srcStream), isset($argOps[$op]) ? unpack('N', fread($this->srcStream, 4))[1] : -1];
+        return [$op = fgetc($this->stream), isset($argOps[$op]) ? unpack('N', fread($this->stream, 4))[1] : -1];
     }
 
     /**
@@ -63,7 +81,7 @@ class FileSourceStream implements SourceStream
      */
     public function seek($position)
     {
-        fseek($this->srcStream, $position, SEEK_SET);
+        fseek($this->stream, $position, SEEK_SET);
     }
 
     /**
@@ -71,6 +89,6 @@ class FileSourceStream implements SourceStream
      */
     public function tell()
     {
-        return ftell($this->srcStream);
+        return ftell($this->stream);
     }
 }

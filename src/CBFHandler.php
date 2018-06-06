@@ -20,7 +20,9 @@ class CBFHandler
 
         if (fread($rawStream, 4) !== self::MAGIC_NUMBER_PREFIX) {
             throw new InvalidCBFFileException($srcFilePath . ' is not a valid CBF file (invalid magic number)');
-        } else if (strlen($rawVersion = fread($rawStream, 4)) !== 4) {
+        }
+
+        if (strlen($rawVersion = fread($rawStream, 4)) !== 4) {
             throw new InvalidCBFFileException($srcFilePath . ' is not a valid CBF file (incomplete compiler compilerVersion identifier)');
         }
 

@@ -24,22 +24,22 @@ class Compiler
      * @var string[]
      */
     private static $nonLoopCmdOpMap = [
-        Cmds::PTR_INC  => Ops::PTINC,
-        Cmds::PTR_DEC  => Ops::PTDEC,
-        Cmds::DATA_INC => Ops::DTINC,
-        Cmds::DATA_DEC => Ops::DTDEC,
-        Cmds::OUTPUT   => Ops::OUTPT,
-        Cmds::INPUT    => Ops::INPUT,
+        Cmds::INCREMENT_POINTER  => Ops::POINTER_INCREMENT,
+        Cmds::DECREMENT_POINTER  => Ops::POINTER_DECREMENT,
+        Cmds::INCREMENT_CURRENT_DATA_BYTE => Ops::DATA_INCREMENT,
+        Cmds::DECREMENT_CURRENT_DATA_BYTE => Ops::DATA_DECREMENT,
+        Cmds::OUTPUT_CURRENT_DATA_BYTE   => Ops::DATA_OUTPUT,
+        Cmds::SET_CURRENT_DATA_BYTE_FROM_INPUT    => Ops::DATA_INPUT,
     ];
 
     /**
      * @var string[]
      */
     private static $compressibleOps = [
-        Ops::DTINC => Ops::DTMLI,
-        Ops::DTDEC => Ops::DTMLD,
-        Ops::PTINC => Ops::PTMLI,
-        Ops::PTDEC => Ops::PTMLD,
+        Ops::DATA_INCREMENT => Ops::DATA_MULTIPLE_INCREMENT,
+        Ops::DATA_DECREMENT => Ops::DATA_MULTIPLE_DECREMENT,
+        Ops::POINTER_INCREMENT => Ops::POINTER_MULTIPLE_INCREMENT,
+        Ops::POINTER_DECREMENT => Ops::POINTER_MULTIPLE_DECREMENT,
     ];
 
     /**
@@ -67,17 +67,17 @@ class Compiler
     private function getSingleInstructionLoopOptimisedOp($op, $loopStartChar, $loopStartLine)
     {
         static $optimisedOpMap = [
-            Ops::PTINC => Ops::FNDZR,
-            Ops::PTDEC => Ops::FNDZL,
-            Ops::DTINC => Ops::ASSNZ,
-            Ops::DTDEC => Ops::ASSNZ,
+            Ops::POINTER_INCREMENT => Ops::FIND_NEXT_ZERO_RIGHT,
+            Ops::POINTER_DECREMENT => Ops::FIND_NEXT_ZERO_LEFT,
+            Ops::DATA_INCREMENT => Ops::ASSIGN_ZERO,
+            Ops::DATA_DECREMENT => Ops::ASSIGN_ZERO,
         ];
 
         if (isset($optimisedOpMap[$op])) {
             return $optimisedOpMap[$op];
         }
 
-        if (in_array($op, [Ops::INPUT, Ops::OUTPT])) {
+        if (in_array($op, [Ops::DATA_INPUT, Ops::DATA_OUTPUT])) {
             throw new \RuntimeException(sprintf(
                 "Infinite I/O loop at char %d on line %d",
                 $loopStartChar, $loopStartLine
@@ -139,7 +139,7 @@ class Compiler
             goto char_process_end;
 
             process_loop_begin_char: {
-                $dstPtr += fwrite($dst->stream, Ops::JUMPZ . "\x00\x00\x00\x00");
+                $dstPtr += fwrite($dst->stream, Ops::JUMP_IF_ZERO . "\x00\x00\x00\x00");
                 $loops[] = [$dstPtr, $char, $line];
                 goto char_process_end;
             }
@@ -168,7 +168,7 @@ class Compiler
                     $dstPtr += fwrite($dst->stream, $this->getSingleInstructionLoopOptimisedOp($loopOp, $loopChar, $loopLine));
                 } else {
                     // Loop contains multiple instructions, write the end pointer into the start pointer
-                    $dstPtr += fwrite($dst->stream, Ops::JMPNZ . pack('N', $loopStartPtr));
+                    $dstPtr += fwrite($dst->stream, Ops::JUMP_IF_NOT_ZERO . pack('N', $loopStartPtr));
                     fseek($dst->stream, $loopStartPtr - 4);
                     fwrite($dst->stream, pack('N', $dstPtr));
                     fseek($dst->stream, $dstPtr);

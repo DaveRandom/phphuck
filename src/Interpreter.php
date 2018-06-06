@@ -17,7 +17,7 @@ class Interpreter
     /**
      * @var int
      */
-    private $ptr = 0;
+    private $pointer = 0;
 
     /**
      * @var resource
@@ -88,27 +88,104 @@ class Interpreter
 
         while (list($op, $arg) = $src->next()) {
             switch ($op) {
-                case Ops::JUMPZ: if (empty($this->data[$this->ptr])) { $src->seek($arg); }                        break;
-                case Ops::JMPNZ: if (!empty($this->data[$this->ptr])) { $src->seek($arg); }                       break;
-                case Ops::PTINC: ++$this->ptr;                                                                    break;
-                case Ops::PTDEC: --$this->ptr;                                                                    break;
-                case Ops::DTINC: $this->data[$this->ptr] = ($this->data[$this->ptr] + 1) % 256;                   break;
-                case Ops::DTDEC: $this->data[$this->ptr] = ($this->data[$this->ptr] + 255) % 256;                 break;
-                case Ops::OUTPT: fwrite($this->stdOut, chr($this->data[$this->ptr]));                             break;
-                case Ops::INPUT: $this->data[$this->ptr] = ord(fgetc($this->stdIn));                              break;
-                case Ops::ASSNZ: $this->data[$this->ptr] = 0;                                                     break;
-                case Ops::FNDZL: while ($this->data[--$this->ptr]);                                               break;
-                case Ops::FNDZR: while ($this->data[++$this->ptr]);                                               break;
-                case Ops::DTMLI: $this->data[$this->ptr] = ($this->data[$this->ptr] + $arg) % 256;                break;
-                case Ops::DTMLD: $this->data[$this->ptr] = ($this->data[$this->ptr] + ($arg * 255)) % 256;        break;
-                case Ops::PTMLI: $this->ptr += $arg;                                                              break;
-                case Ops::PTMLD: $this->ptr -= $arg;                                                              break;
-                case false: break 2;
-                default: throw new \RuntimeException(sprintf(
-                    'Unknown op in source stream; op=0x%02X; pos=0x%X; instruction=%d',
-                    ord($op), $src->tell(), $opCount + 1
-                ));
+                case Ops::JUMP_IF_ZERO: {
+                    if (empty($this->data[$this->pointer])) {
+                        $src->seek($arg);
+                    }
+
+                    break;
+                }
+
+                case Ops::JUMP_IF_NOT_ZERO: {
+                    if (!empty($this->data[$this->pointer])) {
+                        $src->seek($arg);
+                    }
+
+                    break;
+                }
+
+                case Ops::POINTER_INCREMENT: {
+                    ++$this->pointer;
+                    break;
+                }
+
+                case Ops::POINTER_DECREMENT: {
+                    --$this->pointer;
+                    break;
+                }
+
+                case Ops::DATA_INCREMENT: {
+                    $this->data[$this->pointer] = ($this->data[$this->pointer] + 1) % 256;
+                    break;
+                }
+
+                case Ops::DATA_DECREMENT: {
+                    $this->data[$this->pointer] = ($this->data[$this->pointer] + 255) % 256;
+                    break;
+                }
+
+                case Ops::DATA_OUTPUT: {
+                    fwrite($this->stdOut, chr($this->data[$this->pointer]));
+                    break;
+                }
+
+                case Ops::DATA_INPUT: {
+                    $this->data[$this->pointer] = ord(fgetc($this->stdIn));
+                    break;
+                }
+
+                case Ops::ASSIGN_ZERO: {
+                    $this->data[$this->pointer] = 0;
+                    break;
+                }
+
+                case Ops::FIND_NEXT_ZERO_LEFT: {
+                    do {
+                        --$this->pointer;
+                    } while (!empty($this->data[$this->pointer]));
+                    break;
+                }
+
+                case Ops::FIND_NEXT_ZERO_RIGHT: {
+                    do {
+                        ++$this->pointer;
+                    } while (!empty($this->data[$this->pointer]));
+                    break;
+                }
+
+                case Ops::DATA_MULTIPLE_INCREMENT: {
+                    $this->data[$this->pointer] = ($this->data[$this->pointer] + $arg) % 256;
+                    break;
+                }
+
+                case Ops::DATA_MULTIPLE_DECREMENT: {
+                    $this->data[$this->pointer] = ($this->data[$this->pointer] + ($arg * 255)) % 256;
+                    break;
+                }
+
+                case Ops::POINTER_MULTIPLE_INCREMENT: {
+                    $this->pointer += $arg;
+                    break;
+                }
+
+                case Ops::POINTER_MULTIPLE_DECREMENT: {
+                    $this->pointer -= $arg;
+                    break;
+                }
+
+                case false: {
+                    // end of op stream
+                    break 2;
+                }
+
+                default: {
+                    throw new \RuntimeException(sprintf(
+                        'Unknown op in source stream; op=0x%02X; pos=0x%X; instruction=%d',
+                        ord($op), $src->tell(), $opCount + 1
+                    ));
+                }
             }
+
             $opCount++;
         }
 

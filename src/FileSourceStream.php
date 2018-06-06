@@ -67,13 +67,19 @@ class FileSourceStream implements SourceStream
      */
     public function next()
     {
+        // Ops that carry an argument in the following 4 bytes
         static $argOps = [
-            Ops::JUMPZ => 1, Ops::JMPNZ => 1,
-            Ops::DTMLI => 1, Ops::DTMLD => 1,
-            Ops::PTMLI => 1, Ops::PTMLD => 1,
+            Ops::JUMP_IF_ZERO => 1, Ops::JUMP_IF_NOT_ZERO => 1,
+            Ops::DATA_MULTIPLE_INCREMENT => 1, Ops::DATA_MULTIPLE_DECREMENT => 1,
+            Ops::POINTER_MULTIPLE_INCREMENT => 1, Ops::POINTER_MULTIPLE_DECREMENT => 1,
         ];
 
-        return [$op = fgetc($this->stream), isset($argOps[$op]) ? unpack('N', fread($this->stream, 4))[1] : -1];
+        $op = fgetc($this->stream);
+        $arg = isset($argOps[$op])
+            ? unpack('N', fread($this->stream, 4))[1]
+            : -1;
+
+        return [$op, $arg];
     }
 
     /**
